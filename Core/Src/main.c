@@ -44,7 +44,9 @@ ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
 
 /* USER CODE BEGIN PV */
-
+uint16_t adcBuffer [2];
+float bbVoltage = 0, batVoltage = 0;
+int flag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -53,7 +55,15 @@ static void MX_GPIO_Init(void);
 static void MX_DMA_Init(void);
 static void MX_ADC1_Init(void);
 /* USER CODE BEGIN PFP */
-
+float readVoltage(uint16_t adcVal){
+	float voltage = ((3.3f*(float)adcVal)/(4095.0f))*5.0f;
+	return voltage;
+}
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	bbVoltage = readVoltage(adcBuffer[0]);
+	batVoltage = readVoltage(adcBuffer[1]);
+	flag = 1;
+}
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -93,7 +103,7 @@ int main(void)
   MX_DMA_Init();
   MX_ADC1_Init();
   /* USER CODE BEGIN 2 */
-
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 2);
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -103,6 +113,7 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+	  flag = 0;
   }
   /* USER CODE END 3 */
 }
