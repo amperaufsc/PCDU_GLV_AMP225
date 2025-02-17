@@ -48,6 +48,7 @@ TIM_HandleTypeDef htim3;
 /* USER CODE BEGIN PV */
 uint16_t adcBuffer [2];
 float bbVoltage = 0, batVoltage = 0;
+int adcFlag = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -58,12 +59,12 @@ static void MX_ADC1_Init(void);
 static void MX_TIM3_Init(void);
 /* USER CODE BEGIN PFP */
 float readVoltage(uint16_t adcVal){
-	float voltage = ((3.3f*(float)adcVal)/(4095.0f))*5.0f;
+	float adcVoltage = (3.3*adcVal)/(4095);
+	float voltage = (adcVoltage*15)/3;
 	return voltage;
 }
-void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	bbVoltage = readVoltage(adcBuffer[0]);
-	batVoltage = readVoltage(adcBuffer[1]);
+void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	adcFlag = 1;
 }
 /* USER CODE END PFP */
 
@@ -105,7 +106,7 @@ int main(void)
   MX_ADC1_Init();
   MX_TIM3_Init();
   /* USER CODE BEGIN 2 */
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*) adcBuffer, 2);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 2);
   HAL_TIM_Base_Start_IT(&htim3);
   /* USER CODE END 2 */
 
@@ -116,7 +117,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-  }
+	  if(adcFlag == 1){
+		  batVoltage = readVoltage(adcBuffer[1]);
+		  bbVoltage = readVoltage(adcBuffer[0]);
+		  adcFlag = 0;
+	  }
+	  }
   /* USER CODE END 3 */
 }
 
@@ -202,7 +208,7 @@ static void MX_ADC1_Init(void)
   */
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
-  sConfig.SamplingTime = ADC_SAMPLETIME_1CYCLE_5;
+  sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
