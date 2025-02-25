@@ -43,13 +43,15 @@
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc2;
 DMA_HandleTypeDef hdma_adc1;
-
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
 uint16_t adcBuffer [2];
 float bbVoltage = 0, batVoltage = 0;
 int adcFlag = 0;
+CAN_TxHeaderTypeDef txHeader;
+uint32_t txMailbox;
+uint8_t txData[2];
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -66,7 +68,9 @@ float readVoltage(uint16_t adcVal){
 	return voltage;
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
-	adcFlag = 1;
+}
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
 }
 /* USER CODE END PFP */
 
@@ -111,6 +115,16 @@ int main(void)
   /* USER CODE BEGIN 2 */
   HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 2);
   HAL_TIM_Base_Start_IT(&htim3);
+  HAL_CAN_Start(&hcan);
+  /* CAN CONFIGURATION */
+      txHeader.DLC = 2;
+      txHeader.ExtId = 0;
+      txHeader.IDE = CAN_ID_STD;
+      txHeader.RTR = CAN_RTR_DATA;
+      txHeader.StdId = 0x1;
+      txHeader.TransmitGlobalTime = DISABLE;
+      txData[0] = 0x0;
+      txData[1] = 0x0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -124,8 +138,10 @@ int main(void)
 		  batVoltage = readVoltage(adcBuffer[1]);
 		  bbVoltage = readVoltage(adcBuffer[0]);
 		  adcFlag = 0;
+
 	  }
-	  }
+	  txData[0] = batVoltage;
+	  txData[1]= bbVoltage;
   /* USER CODE END 3 */
 }
 
