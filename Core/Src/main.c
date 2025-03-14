@@ -43,11 +43,12 @@
 ADC_HandleTypeDef hadc1;
 ADC_HandleTypeDef hadc2;
 DMA_HandleTypeDef hdma_adc1;
+
 TIM_HandleTypeDef htim3;
 
 /* USER CODE BEGIN PV */
-uint16_t adcBuffer [2];
-float bbVoltage = 0, batVoltage = 0;
+uint16_t adcBuffer [1];
+float bbVoltage = 0;
 int adcFlag = 0;
 CAN_TxHeaderTypeDef txHeader;
 uint32_t txMailbox;
@@ -113,18 +114,17 @@ int main(void)
   MX_TIM3_Init();
   MX_ADC2_Init();
   /* USER CODE BEGIN 2 */
-  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 2);
+  HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 1);
   HAL_TIM_Base_Start_IT(&htim3);
   HAL_CAN_Start(&hcan);
   /* CAN CONFIGURATION */
-      txHeader.DLC = 2;
+      txHeader.DLC = 1;
       txHeader.ExtId = 0;
       txHeader.IDE = CAN_ID_STD;
       txHeader.RTR = CAN_RTR_DATA;
       txHeader.StdId = 0x1;
       txHeader.TransmitGlobalTime = DISABLE;
       txData[0] = 0x0;
-      txData[1] = 0x0;
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -135,13 +135,11 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  if(adcFlag == 1){
-		  batVoltage = readVoltage(adcBuffer[1]);
 		  bbVoltage = readVoltage(adcBuffer[0]);
 		  adcFlag = 0;
 
 	  }
-	  txData[0] = batVoltage;
-	  txData[1]= bbVoltage;
+	  txData[0]= bbVoltage;
   /* USER CODE END 3 */
 }
 
@@ -203,6 +201,7 @@ static void MX_ADC1_Init(void)
 
   /* USER CODE END ADC1_Init 0 */
 
+  ADC_AnalogWDGConfTypeDef AnalogWDGConfig = {0};
   ADC_ChannelConfTypeDef sConfig = {0};
 
   /* USER CODE BEGIN ADC1_Init 1 */
@@ -212,13 +211,25 @@ static void MX_ADC1_Init(void)
   /** Common config
   */
   hadc1.Instance = ADC1;
-  hadc1.Init.ScanConvMode = ADC_SCAN_ENABLE;
+  hadc1.Init.ScanConvMode = ADC_SCAN_DISABLE;
   hadc1.Init.ContinuousConvMode = ENABLE;
   hadc1.Init.DiscontinuousConvMode = DISABLE;
   hadc1.Init.ExternalTrigConv = ADC_SOFTWARE_START;
   hadc1.Init.DataAlign = ADC_DATAALIGN_RIGHT;
-  hadc1.Init.NbrOfConversion = 2;
+  hadc1.Init.NbrOfConversion = 1;
   if (HAL_ADC_Init(&hadc1) != HAL_OK)
+  {
+    Error_Handler();
+  }
+
+  /** Configure Analog WatchDog 1
+  */
+  AnalogWDGConfig.WatchdogMode = ADC_ANALOGWATCHDOG_SINGLE_REG;
+  AnalogWDGConfig.HighThreshold = 0;
+  AnalogWDGConfig.LowThreshold = 0;
+  AnalogWDGConfig.Channel = ADC_CHANNEL_0;
+  AnalogWDGConfig.ITMode = DISABLE;
+  if (HAL_ADC_AnalogWDGConfig(&hadc1, &AnalogWDGConfig) != HAL_OK)
   {
     Error_Handler();
   }
@@ -228,15 +239,6 @@ static void MX_ADC1_Init(void)
   sConfig.Channel = ADC_CHANNEL_0;
   sConfig.Rank = ADC_REGULAR_RANK_1;
   sConfig.SamplingTime = ADC_SAMPLETIME_239CYCLES_5;
-  if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
-  {
-    Error_Handler();
-  }
-
-  /** Configure Regular Channel
-  */
-  sConfig.Channel = ADC_CHANNEL_4;
-  sConfig.Rank = ADC_REGULAR_RANK_2;
   if (HAL_ADC_ConfigChannel(&hadc1, &sConfig) != HAL_OK)
   {
     Error_Handler();
@@ -363,8 +365,8 @@ static void MX_DMA_Init(void)
 static void MX_GPIO_Init(void)
 {
   GPIO_InitTypeDef GPIO_InitStruct = {0};
-/* USER CODE BEGIN MX_GPIO_Init_1 */
-/* USER CODE END MX_GPIO_Init_1 */
+  /* USER CODE BEGIN MX_GPIO_Init_1 */
+  /* USER CODE END MX_GPIO_Init_1 */
 
   /* GPIO Ports Clock Enable */
   __HAL_RCC_GPIOC_CLK_ENABLE();
@@ -398,8 +400,8 @@ static void MX_GPIO_Init(void)
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
   HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
 
-/* USER CODE BEGIN MX_GPIO_Init_2 */
-/* USER CODE END MX_GPIO_Init_2 */
+  /* USER CODE BEGIN MX_GPIO_Init_2 */
+  /* USER CODE END MX_GPIO_Init_2 */
 }
 
 /* USER CODE BEGIN 4 */
