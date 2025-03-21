@@ -106,7 +106,7 @@ int main(void)
   MX_ADC2_Init();
   MX_I2C1_Init();
   /* USER CODE BEGIN 2 */
-  INA226_Init(3000,25,AVG_4,T_Vbus_1_1ms,T_Vshunt_1_1ms,MODE_SHUNT_BUS_CONTINUOUS);
+  INA226_Init(32.768,2,AVG_4,T_Vbus_1_1ms,T_Vshunt_1_1ms,MODE_SHUNT_BUS_CONTINUOUS);
 
   alert = INA226_Mode_pinAlert(SHUNT_VOLTAGE_OVER);
   alertLimit = INA226_Alert_Limit(401);             //ativa o pino alerta
@@ -121,7 +121,7 @@ int main(void)
 
     /* USER CODE BEGIN 3 */
 	  voltage = INA226_Vbus();
-	  current = INA226_Current();
+	  current = (INA226_Current()/1000);
   }
   /* USER CODE END 3 */
 }
