@@ -159,12 +159,12 @@ int main(void)
 	  		  adcFlag = 0;
 
 	  	  }
-	  txData[0] = (uint8_t)(bbVoltage*10);
+	  txData[0] = (uint8_t)(bbVoltage*10); // pegar o valor inteiro com uma casa decimal
 	  txData[1] = (uint8_t)(voltage*10);
 	  txData[2] = (uint8_t)(current);
 
-	 if(bbVoltage > 150||bbVoltage < 110||){
-		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET);
+	 if(bbVoltage > 150||bbVoltage < 110){
+		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
 	 }
 
 	  voltage = INA226_Vbus();
