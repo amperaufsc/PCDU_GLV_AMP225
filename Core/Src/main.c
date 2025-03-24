@@ -159,7 +159,13 @@ int main(void)
 	  		  adcFlag = 0;
 
 	  	  }
-	  	  txData[0]= bbVoltage;
+	  txData[0] = (uint8_t)(bbVoltage*10);
+	  txData[1] = (uint8_t)(voltage*10);
+	  txData[2] = (uint8_t)(current);
+
+	 if(bbVoltage > 150||bbVoltage < 110||){
+		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET);
+	 }
 
 	  voltage = INA226_Vbus();
 	  current = (INA226_Current()/1000); // lê em miliA, daí divido por 1000 pra A
@@ -428,7 +434,7 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(LD2_GPIO_Port, LD2_Pin, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOA, LD2_Pin|GPIO_PIN_9, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : B1_Pin */
   GPIO_InitStruct.Pin = B1_Pin;
@@ -436,12 +442,12 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pin : LD2_Pin */
-  GPIO_InitStruct.Pin = LD2_Pin;
+  /*Configure GPIO pins : LD2_Pin PA9 */
+  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_9;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+  HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
   HAL_NVIC_SetPriority(EXTI15_10_IRQn, 0, 0);
