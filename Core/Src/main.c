@@ -163,7 +163,7 @@ int main(void)
 	  txData[1] = (uint8_t)(voltage*10);
 	  txData[2] = (uint8_t)(current);
 
-	 if(bbVoltage > 150||bbVoltage < 110){
+	 if(voltage > 150||bbVoltage < 110){
 		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
 	 }
 
