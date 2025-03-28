@@ -23,14 +23,14 @@
 /* USER CODE BEGIN Includes */
 #include "Anglas_INA226.h"
 
-/* USER CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
 
-/* Private define ------------------------------------------------------------*/
+/* Private defin CODE END Includes */
+
+/* Private typedef -----------------------------------------------------------*/
+/* USERe ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
 /* USER CODE END PD */
@@ -82,6 +82,7 @@ float readVoltage(uint16_t adcVal){
 	return voltage;
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
+	adc_Flag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
