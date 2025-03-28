@@ -18,19 +18,17 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Anglas_INA226.h"
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
 
-/* Private defin CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USERe ------------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
 /* USER CODE END PD */
@@ -58,7 +56,7 @@ float current,shunt,voltage;
 float bbVoltage = 0;
 int adcFlag = 0;
 CAN_TxHeaderTypeDef txHeader;
-uint8_t txData[2];
+uint8_t txData[3];
 uint16_t alert,alertLimit;
 uint16_t adcBuffer [1];
 uint32_t txMailbox;
@@ -82,7 +80,7 @@ float readVoltage(uint16_t adcVal){
 	return voltage;
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
-	adc_Flag = 1;
+	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
@@ -165,9 +163,9 @@ int main(void)
 	  	  }
 	  txData[0] = (uint8_t)(bbVoltage*10); // pegar o valor inteiro com uma casa decimal
 	  txData[1] = (uint8_t)(voltage*10);
-	  txData[2] = (uint8_t)(current);
+	  txData[2] = (uint8_t)(current*10);
 
-	 if(voltage > 150||bbVoltage < 110){
+	 if(bbVoltage < 11){
 		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
 	 }
 
@@ -462,10 +460,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin PA9 */
-  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_9;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
