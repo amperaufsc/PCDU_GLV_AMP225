@@ -18,19 +18,17 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
-
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Anglas_INA226.h"
+/* USER CODE END Includes */
 
+/* Private typedef -----------------------------------------------------------*/
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
 
-/* Private defin CODE END Includes */
-
-/* Private typedef -----------------------------------------------------------*/
-/* USERe ------------------------------------------------------------*/
+/* Private define ------------------------------------------------------------*/
 /* USER CODE BEGIN PD */
 
 /* USER CODE END PD */
@@ -82,7 +80,7 @@ float readVoltage(uint16_t adcVal){
 	return voltage;
 }
 void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
-	adc_Flag = 1;
+	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
@@ -462,10 +460,17 @@ static void MX_GPIO_Init(void)
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   HAL_GPIO_Init(B1_GPIO_Port, &GPIO_InitStruct);
 
-  /*Configure GPIO pins : LD2_Pin PA9 */
-  GPIO_InitStruct.Pin = LD2_Pin|GPIO_PIN_9;
+  /*Configure GPIO pin : LD2_Pin */
+  GPIO_InitStruct.Pin = LD2_Pin;
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(LD2_GPIO_Port, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PA9 */
+  GPIO_InitStruct.Pin = GPIO_PIN_9;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
