@@ -58,7 +58,7 @@ float current,shunt,voltage;
 float bbVoltage = 0;
 int adcFlag = 0;
 CAN_TxHeaderTypeDef txHeader;
-uint8_t txData[2];
+uint8_t txData[3];
 uint16_t alert,alertLimit;
 uint16_t adcBuffer [1];
 uint32_t txMailbox;
@@ -165,9 +165,9 @@ int main(void)
 	  	  }
 	  txData[0] = (uint8_t)(bbVoltage*10); // pegar o valor inteiro com uma casa decimal
 	  txData[1] = (uint8_t)(voltage*10);
-	  txData[2] = (uint8_t)(current);
+	  txData[2] = (uint8_t)(current*10);
 
-	 if(voltage > 150||bbVoltage < 110){
+	 if(voltage > 14||bbVoltage < 11||current>20){
 		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
 	 }
 
