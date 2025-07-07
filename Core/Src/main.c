@@ -41,13 +41,9 @@
 /* Private variables ---------------------------------------------------------*/
 ADC_HandleTypeDef hadc1;
 DMA_HandleTypeDef hdma_adc1;
-
 CAN_HandleTypeDef hcan;
-
 I2C_HandleTypeDef hi2c1;
-
 TIM_HandleTypeDef htim3;
-
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
@@ -83,6 +79,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
+	 current = INA226_Current();
+     uint16_t current_int = (uint16_t)((current) * 10); // 0.1A/bit
+
+	 canData[0] = current_int >> 8;
+	 canData[1] = current_int & 0xFF;
+
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
 }
 /* USER CODE END PFP */
