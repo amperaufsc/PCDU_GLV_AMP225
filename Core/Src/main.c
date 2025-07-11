@@ -21,6 +21,7 @@
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include "Anglas_INA226.h"
+#include <string.h>
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -48,11 +49,12 @@ UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
 
-float current,shunt,voltage;
+float current,voltage;
 float bbVoltage = 0;
-int adcFlag = 0;
+int acdFlag = 1;
+int canFlag = 0;
 CAN_TxHeaderTypeDef txHeader;
-uint8_t txData[3];
+uint8_t txData[8];
 uint16_t alert,alertLimit;
 uint16_t adcBuffer [1];
 uint32_t txMailbox;
@@ -79,14 +81,12 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	 current = INA226_Current();
-     uint16_t current_int = (uint16_t)((current) * 10); // 0.1A/bit
-
-	 canData[0] = current_int >> 8;
-	 canData[1] = current_int & 0xFF;
+	memcpy(&txData[0],&current, sizeof(float));
+	memcpy(&txData[4],&bbVoltage, sizeof(float));
 
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
 }
+void send_can(void );
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -135,14 +135,6 @@ int main(void)
    HAL_TIM_Base_Start_IT(&htim3);
    HAL_CAN_Start(&hcan);
    /* CAN CONFIGURATION */
-       txHeader.DLC = 1;
-       txHeader.ExtId = 0;
-       txHeader.IDE = CAN_ID_STD;
-       txHeader.RTR = CAN_RTR_DATA;
-       txHeader.StdId = 0x1;
-       txHeader.TransmitGlobalTime = DISABLE;
-       txData[0] = 0x0;
-
   INA226_Init(32.768,2,AVG_4,T_Vbus_1_1ms,T_Vshunt_1_1ms,MODE_SHUNT_BUS_CONTINUOUS);
 
   alert = INA226_Mode_pinAlert(SHUNT_VOLTAGE_OVER);
@@ -163,10 +155,10 @@ int main(void)
 	  		  adcFlag = 0;
 
 	  	  }
-	  txData[0] = (uint8_t)(bbVoltage*10); // pegar o valor inteiro com uma casa decimal
-	  txData[1] = (uint8_t)(voltage*10);
-	  txData[2] = (uint8_t)(current*10);
-
+     if (canFlag == 1){
+    	 send_can();
+    	 canFlag = 0;
+     }
 	 if(voltage > 14||bbVoltage < 11||current>20){
 		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
 	 }
@@ -360,9 +352,9 @@ static void MX_TIM3_Init(void)
 
   /* USER CODE END TIM3_Init 1 */
   htim3.Instance = TIM3;
-  htim3.Init.Prescaler = 0;
+  htim3.Init.Prescaler = 719;
   htim3.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim3.Init.Period = 65535;
+  htim3.Init.Period = 1999;
   htim3.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim3.Init.AutoReloadPreload = TIM_AUTORELOAD_PRELOAD_DISABLE;
   if (HAL_TIM_Base_Init(&htim3) != HAL_OK)
@@ -485,7 +477,17 @@ static void MX_GPIO_Init(void)
 }
 
 /* USER CODE BEGIN 4 */
+void send_can(void ){
+	txHeader.StdId = 0x360;
+	txHeader.DLC = 8;
+	txHeader.ExtId = 0;
+	txHeader.IDE = CAN_ID_STD;
+	txHeader.RTR = CAN_RTR_DATA;
+	memcpy(&txData[0],&current, sizeof(float));
+	memcpy(&txData[4],&bbVoltage, sizeof(float));
 
+	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
+}
 /* USER CODE END 4 */
 
 /**
