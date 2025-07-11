@@ -48,10 +48,10 @@ TIM_HandleTypeDef htim3;
 UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN PV */
-
+int count = 0;
 float current,voltage;
 float bbVoltage = 0;
-int acdFlag = 1;
+int adcFlag = 0;
 int canFlag = 0;
 CAN_TxHeaderTypeDef txHeader;
 uint8_t txData[8];
@@ -81,10 +81,7 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc){
 	adcFlag = 1;
 }
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
-	memcpy(&txData[0],&current, sizeof(float));
-	memcpy(&txData[4],&bbVoltage, sizeof(float));
-
-	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
+	canFlag = 1;
 }
 void send_can(void );
 /* USER CODE END PFP */
@@ -159,12 +156,17 @@ int main(void)
     	 send_can();
     	 canFlag = 0;
      }
-	 if(voltage > 14||bbVoltage < 11||current>20){
-		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
-	 }
+     if(count >= 1000){
+    	 count = 0;
+     }
+     count++;
 
 	  voltage = INA226_Vbus();
 	  current = (INA226_Current()/1000); // lê em miliA, daí divido por 1000 pra A
+
+	 if(voltage > 14||bbVoltage < 11||current>20){
+		 HAL_GPIO_WritePin(GPIOA, GPIO_PIN_9, SET); // caso uma das situações ocorra, aciona o shutdown do glv
+	 }
   }
   /* USER CODE END 3 */
 }
@@ -361,8 +363,6 @@ static void MX_TIM3_Init(void)
   {
     Error_Handler();
   }
-  sSlaveConfig.SlaveMode = TIM_SLAVEMODE_EXTERNAL1;
-  sSlaveConfig.InputTrigger = TIM_TS_ITR0;
   if (HAL_TIM_SlaveConfigSynchro(&htim3, &sSlaveConfig) != HAL_OK)
   {
     Error_Handler();
@@ -478,13 +478,14 @@ static void MX_GPIO_Init(void)
 
 /* USER CODE BEGIN 4 */
 void send_can(void ){
-	txHeader.StdId = 0x360;
+	txHeader.StdId = 0x380;
 	txHeader.DLC = 8;
 	txHeader.ExtId = 0;
 	txHeader.IDE = CAN_ID_STD;
 	txHeader.RTR = CAN_RTR_DATA;
+
 	memcpy(&txData[0],&current, sizeof(float));
-	memcpy(&txData[4],&bbVoltage, sizeof(float));
+	memcpy(&txData[4],&voltage, sizeof(float));
 
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
 }

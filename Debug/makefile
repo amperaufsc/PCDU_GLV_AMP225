@@ -60,8 +60,8 @@ all: main-build
 main-build: PCDU_GLV_AMP225.elf secondary-outputs
 
 # Tool invocations
-PCDU_GLV_AMP225.elf PCDU_GLV_AMP225.map: $(OBJS) $(USER_OBJS) C:\Users\Win\ 10\Documents\MATLAB\PCDU_GLV_AMP225\STM32F103RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
-	arm-none-eabi-gcc -o "PCDU_GLV_AMP225.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Win 10\Documents\MATLAB\PCDU_GLV_AMP225\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PCDU_GLV_AMP225.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
+PCDU_GLV_AMP225.elf PCDU_GLV_AMP225.map: $(OBJS) $(USER_OBJS) C:\Users\Mari\STM32CubeIDE\workspace_1.16.1\PCDU_GLV_AMP225\STM32F103RBTX_FLASH.ld makefile objects.list $(OPTIONAL_TOOL_DEPS)
+	arm-none-eabi-gcc -o "PCDU_GLV_AMP225.elf" @"objects.list" $(USER_OBJS) $(LIBS) -mcpu=cortex-m3 -T"C:\Users\Mari\STM32CubeIDE\workspace_1.16.1\PCDU_GLV_AMP225\STM32F103RBTX_FLASH.ld" --specs=nosys.specs -Wl,-Map="PCDU_GLV_AMP225.map" -Wl,--gc-sections -static --specs=nano.specs -mfloat-abi=soft -mthumb -Wl,--start-group -lc -lm -Wl,--end-group
 	@echo 'Finished building target: $@'
 	@echo ' '
 
