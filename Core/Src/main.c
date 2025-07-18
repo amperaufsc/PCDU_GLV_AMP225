@@ -87,6 +87,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim){
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
 }
 void send_can(void );
+void ArmazenateCAN (void);
 /* USER CODE END PFP */
 
 /* Private user code ---------------------------------------------------------*/
@@ -133,6 +134,19 @@ int main(void)
 
    HAL_ADC_Start_DMA(&hadc1, (uint32_t*)adcBuffer, 1);
    HAL_TIM_Base_Start_IT(&htim3);
+
+   CAN_FilterTypeDef CanFilterConfig;
+   CanFilterConfig.FilterActivation = CAN_FILTER_ENABLE;
+   CanFilterConfig.FilterBank = 10;
+   CanFilterConfig.FilterFIFOAssignment = CAN_FILTER_FIFO0;
+   CanFilterConfig.FilterIdHigh = 0x0000;
+   CanFilterConfig.FilterIdLow = 0x0000;
+   CanFilterConfig.FilterMaskIdHigh = 0x0000;
+   CanFilterConfig.FilterMaskIdLow = 0x0000;
+   CanFilterConfig.FilterMode = CAN_FILTERMODE_IDMASK;
+   CanFilterConfig.FilterScale = CAN_FILTERSCALE_32BIT;
+
+   HAL_CAN_ConfigFilter(&hcan, &CanFilterConfig);
    HAL_CAN_Start(&hcan);
    /* CAN CONFIGURATION */
   INA226_Init(32.768,2,AVG_4,T_Vbus_1_1ms,T_Vshunt_1_1ms,MODE_SHUNT_BUS_CONTINUOUS);
@@ -487,6 +501,11 @@ void send_can(void ){
 	memcpy(&txData[4],&bbVoltage, sizeof(float));
 
 	HAL_CAN_AddTxMessage(&hcan, &txHeader, txData, &txMailbox);
+}
+void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)
+{
+	HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, RxData);
+	ArmazenateCAN();
 }
 /* USER CODE END 4 */
 
